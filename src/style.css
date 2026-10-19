@@ -1,0 +1,191 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0f2fe; /* 柔和的淡蓝色背景 */
+            padding: 16px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffffd0;
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0, 80, 120, 0.15), 0 8px 20px rgba(0, 0, 0, 0.05);
+            padding: 32px 24px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.1s ease;
+            border: 1px solid #bae6fd;
+        }
+
+        /* 瞬时变红：通过添加 class 控制背景 */
+        .game-container.flash-red {
+            background-color: #ffb3b3 !important;
+            transition: background-color 0s; /* 瞬间变红 */
+        }
+
+        .display-area {
+            width: 100%;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            padding: 8px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #075985;
+            line-height: 1.4;
+            letter-spacing: 0.3px;
+            word-break: break-word;
+        }
+
+        .message-text {
+            transition: opacity 0.2s;
+        }
+
+        .avg-highlight {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0c4a6e;
+            display: inline-block;
+            margin: 0 6px;
+        }
+
+        .button-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .test-btn {
+            background: #0284c7;
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 20px 40px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 12px 20px -8px #0369a1;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            letter-spacing: 1px;
+            border: 1px solid #38bdf8;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            touch-action: manipulation;
+        }
+
+        .test-btn:active {
+            transform: scale(0.97);
+            background: #0b7dc9;
+            box-shadow: 0 6px 12px -6px #0369a1;
+        }
+
+        .test-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            box-shadow: 0 6px 12px -6px #0369a1;
+            background: #7aa9c4;
+            cursor: not-allowed;
+        }
+
+        /* 弹窗遮罩 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: #f8fafc;
+            border-radius: 40px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border: 1px solid #bae6fd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-message {
+            font-size: 1.4rem;
+            color: #075985;
+            margin-bottom: 32px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background: #0284c7;
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 20px 40px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 12px 20px -8px #0369a1;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            letter-spacing: 1px;
+            border: 1px solid #38bdf8;
+            touch-action: manipulation;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.97);
+            background: #0b7dc9;
+        }
+
+        /* 手机小屏微调 */
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 24px 16px 32px;
+                border-radius: 36px;
+            }
+            .display-area {
+                font-size: 1.1rem;
+                min-height: 80px;
+                margin-bottom: 24px;
+            }
+            .test-btn, .modal-btn {
+                font-size: 1.3rem;
+                padding: 18px 20px;
+            }
+            .avg-highlight {
+                font-size: 1.6rem;
+            }
+            .modal-message {
+                font-size: 1.2rem;
+            }
+        }

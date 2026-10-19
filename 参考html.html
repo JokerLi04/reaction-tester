@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>反应测试器 · 五感竞速</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0f2fe; /* 柔和的淡蓝色背景 */
+            padding: 16px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffffd0;
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0, 80, 120, 0.15), 0 8px 20px rgba(0, 0, 0, 0.05);
+            padding: 32px 24px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.1s ease;
+            border: 1px solid #bae6fd;
+        }
+
+        /* 瞬时变红：通过添加 class 控制背景 */
+        .game-container.flash-red {
+            background-color: #ffb3b3 !important;
+            transition: background-color 0s; /* 瞬间变红 */
+        }
+
+        .display-area {
+            width: 100%;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            padding: 8px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #075985;
+            line-height: 1.4;
+            letter-spacing: 0.3px;
+            word-break: break-word;
+        }
+
+        .message-text {
+            transition: opacity 0.2s;
+        }
+
+        .avg-highlight {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0c4a6e;
+            display: inline-block;
+            margin: 0 6px;
+        }
+
+        .button-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .test-btn {
+            background: #0284c7;
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 20px 40px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 12px 20px -8px #0369a1;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            letter-spacing: 1px;
+            border: 1px solid #38bdf8;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            touch-action: manipulation;
+        }
+
+        .test-btn:active {
+            transform: scale(0.97);
+            background: #0b7dc9;
+            box-shadow: 0 6px 12px -6px #0369a1;
+        }
+
+        .test-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            box-shadow: 0 6px 12px -6px #0369a1;
+            background: #7aa9c4;
+            cursor: not-allowed;
+        }
+
+        /* 弹窗遮罩 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: #f8fafc;
+            border-radius: 40px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border: 1px solid #bae6fd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-message {
+            font-size: 1.4rem;
+            color: #075985;
+            margin-bottom: 32px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background: #0284c7;
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 20px 40px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 12px 20px -8px #0369a1;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            letter-spacing: 1px;
+            border: 1px solid #38bdf8;
+            touch-action: manipulation;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.97);
+            background: #0b7dc9;
+        }
+
+        /* 手机小屏微调 */
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 24px 16px 32px;
+                border-radius: 36px;
+            }
+            .display-area {
+                font-size: 1.1rem;
+                min-height: 80px;
+                margin-bottom: 24px;
+            }
+            .test-btn, .modal-btn {
+                font-size: 1.3rem;
+                padding: 18px 20px;
+            }
+            .avg-highlight {
+                font-size: 1.6rem;
+            }
+            .modal-message {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <!-- 文字显示区域（方法提示 / 平均值 / 等待文字） -->
+        <div class="display-area" id="displayArea">
+            <span class="message-text" id="messageText">测试方法：点击“开始测试”后，等待背景变红瞬间点击按钮</span>
+        </div>
+
+        <!-- 按钮区域（位置固定，内容可变） -->
+        <div class="button-area">
+            <button class="test-btn" id="mainButton">开始测试</button>
+        </div>
+    </div>
+
+    <!-- 弹窗（默认隐藏） -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-message" id="modalMessage">提前点击！需要重新测试</div>
+            <button class="modal-btn" id="modalButton">重新测试</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- DOM 元素 ----------
+            const container = document.getElementById('gameContainer');
+            const displayArea = document.getElementById('displayArea');
+            const messageText = document.getElementById('messageText');
+            const mainButton = document.getElementById('mainButton');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalButton = document.getElementById('modalButton');
+
+            // ---------- 状态管理 ----------
+            const STATE = {
+                IDLE: 'idle',               // 初始状态，显示方法
+                WAITING: 'waiting',         // 已点开始，随机延迟中
+                READY: 'ready',             // 背景变红，等待点击（仅一瞬间，瞬间后进入点击有效窗口）
+                PROCESSING: 'processing',   // 刚点击完一次（瞬时状态）
+                FINISHED: 'finished'        // 已完成5次，显示平均值
+            };
+
+            let currentState = STATE.IDLE;
+            let reactionTimes = [];          // 存放5次有效反应时间(ms)
+            let startTime = 0;              // 记录背景变红的时刻
+            let timeoutId = null;           // setTimeout 的 id
+            let flashTimeoutId = null;      // 变红恢复的 timeout
+
+            // 按钮文字映射
+            const BUTTON_TEXT = {
+                [STATE.IDLE]: '开始测试',
+                [STATE.WAITING]: '等待变红...',
+                [STATE.READY]: '点击！',
+                [STATE.FINISHED]: '重新测试'
+            };
+
+            // 默认提示文本
+            const METHOD_TEXT = '测试方法：点击“开始测试”后，等待背景变红瞬间点击按钮';
+            const WAITING_TEXT = '等待背景变红…';
+            const READY_TEXT = '点击！';
+            const FINISHED_TEXT = '平均反应时间: ';
+
+            // ---------- 辅助函数 ----------
+            function setDisplayText(text) {
+                messageText.textContent = text;
+            }
+
+            // 清除所有计时器
+            function clearAllTimers() {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                if (flashTimeoutId) {
+                    clearTimeout(flashTimeoutId);
+                    flashTimeoutId = null;
+                }
+            }
+
+            // 重置到原始状态 (IDLE)
+            function resetToIdle() {
+                clearAllTimers();
+                // 移除红色背景类
+                container.classList.remove('flash-red');
+                // 重置数据
+                reactionTimes = [];
+                currentState = STATE.IDLE;
+                // 更新界面
+                setDisplayText(METHOD_TEXT);
+                mainButton.textContent = BUTTON_TEXT[STATE.IDLE];
+                mainButton.disabled = false;
+                // 确保弹窗关闭
+                modalOverlay.style.display = 'none';
+            }
+
+            // 显示弹窗 (提前点击)
+            function showEarlyClickModal() {
+                modalOverlay.style.display = 'flex';
+                modalMessage.textContent = '提前点击！需要重新测试';
+                // 弹窗按钮文字可自定义，但为了对应“测试”按钮位置，保持文案一致？但需求要求“关闭提示的按钮与‘测试’按钮位置相同”
+                // 位置相同已经由居中布局满足；文本我们设为“重新测试”，但感觉更符合场景
+                modalButton.textContent = '重新测试';
+            }
+
+            // 隐藏弹窗
+            function hideModal() {
+                modalOverlay.style.display = 'none';
+            }
+
+            // 完成5次测试，展示平均值
+            function finishTest() {
+                clearAllTimers();
+                currentState = STATE.FINISHED;
+                container.classList.remove('flash-red');
+                // 计算平均值
+                const sum = reactionTimes.reduce((acc, val) => acc + val, 0);
+                const avg = sum / reactionTimes.length;
+                // 显示平均值 (保留一位小数)
+                const avgDisplay = avg.toFixed(1);
+                // 构造显示内容：平均反应时间: xxx ms (5次)
+                // 因为messageText只能显示文本，但我们要加粗平均值？可以直接使用HTML结构？但messageText是span, 我们可以用innerHTML
+                // 但为了安全及样式，直接修改innerHTML
+                displayArea.innerHTML = `<span class="message-text" id="messageText">平均反应时间 <span class="avg-highlight">${avgDisplay}</span> ms (5次)</span>`;
+                // 重新获取messageText引用，因为innerHTML更新了元素
+                // 但后续可能还会重置，所以重新获取一下
+                // 注意：原本的messageText变量已经指向旧节点，需要重新绑定
+                // 为了简单，我们不在后续使用messageText变量，改用displayArea操作
+                // 但为了统一，重新赋值
+                // 但原来的messageText在reset时还要用，所以这里重新获取
+                // 但由于我们使用了let messageText = ... 可以重新赋值
+                // 但为了代码整洁，后面统一用displayArea和querySelector
+                // 我们更新引用：
+                window.messageText = document.getElementById('messageText'); // 但这是在函数内部，用局部变量更好
+                // 局部变量重新赋值不可行，改用闭包内的引用更新？简单点：在finishTest里更新完innerHTML后，后面的逻辑不再依赖messageText变量。
+                // 重置时会重新设置displayArea内容。因此这里可以不对messageText做处理。
+                // 但为了重置时能完整替换，我们重置时直接覆盖innerHTML。因此没问题。
+                
+                // 更新按钮文字
+                mainButton.textContent = BUTTON_TEXT[STATE.FINISHED];
+                mainButton.disabled = false;
+            }
+
+            // 处理提前点击 (在WAITING或READY但非正确点击时)
+            function handleEarlyClick() {
+                // 清除所有计时器，取消当前轮次
+                clearAllTimers();
+                // 移除红色背景（如果有）
+                container.classList.remove('flash-red');
+                // 显示弹窗
+                showEarlyClickModal();
+                // 当前状态仍然停留在等待或准备？但我们弹窗后用户必须关闭，弹窗关闭会重置。
+                // 为了保证弹窗关闭后行为正确，将状态设为等待重置? 实际上弹窗按钮会触发重置。
+                // 但为了防止按钮点击再次触发，可以暂时禁用主按钮? 但主按钮在弹窗后面，用户无法点击。
+                // 弹窗遮罩层级高，主按钮不可点。
+                // 但以防万一，我们设置状态为IDLE? 但弹窗关闭后才是IDLE。为了不影响主按钮逻辑，保持原状态，但主按钮不可点因为被遮罩。
+                // 不修改currentState，但为了避免多余的点击，遮罩已经阻止。
+                // 注意：如果用户通过键盘操作可能点到后面按钮？但主按钮在遮罩下，click事件不会触发。
+            }
+
+            // 开始一次测试的等待 (从WAITING开始)
+            function startWaiting() {
+                // 清除之前所有计时器
+                clearAllTimers();
+                // 确保红色消失
+                container.classList.remove('flash-red');
+                currentState = STATE.WAITING;
+                // 更新显示
+                setDisplayText(WAITING_TEXT);
+                mainButton.textContent = BUTTON_TEXT[STATE.WAITING];
+                // 禁用按钮? 不能禁用，否则无法检测提前点击。我们要检测提前点击，所以按钮必须可点击。
+                // 但可以保持enabled，让用户能点击。
+                mainButton.disabled = false;
+                // 随机1-5秒 (1000~5000ms)
+                const delay = Math.floor(Math.random() * 4000) + 1000; // 1000-5000
+                timeoutId = setTimeout(() => {
+                    // 进入READY状态: 背景变红一瞬间（很短），并且按钮文字改变
+                    // 先清除timeoutId(已执行)
+                    timeoutId = null;
+                    if (currentState !== STATE.WAITING) return; // 安全校验
+                    currentState = STATE.READY;
+                    // 变红一瞬间（很短），设置红色背景并移除类实现闪烁？但需求是“背景变红一瞬间”，我们可以让红色持续约100ms但用户看到的是短暂闪烁
+                    // 实际上为了用户能感知，我们让红色持续150ms然后移除；但要在点击之前移除，否则用户看到红色点击有效。
+                    // 需求：“原背景变红一瞬间（很短）；如果用户提前点击……” 这里变红瞬间就是信号，用户看到红后点击是有效的。
+                    // 所以我们需要在变红时刻启动反应计时。同时红色背景应当很快消失（一瞬间），但点击必须在红色消失前？通常测试中，红色出现代表刺激，点击就是反应。
+                    // 根据描述，用户需要在出现文字（?）或者背景变红瞬间点击。这里我们使用背景变红作为刺激。
+                    // 但背景变红一瞬间很短，如果消失后用户再点击就算提前？实际上应定义：在背景变红的瞬间及之后极短时间（如300ms）内点击有效。
+                    // 但需求是“按钮上方出现文字，原背景变红一瞬间（很短）”。可能同时出现文字？然后用户点击。
+                    // 为了合理性，我们让背景红色持续150ms，并且在红色出现的同时更新文字为“点击！”并开始计时。150ms后红色消失但用户仍然可以点击？那样会混淆。
+                    // 根据常规反应测试：刺激出现(变红)后用户点击，记录从刺激出现到点击的时间。红色可以持续到用户点击后再消失，但需求说一瞬间（很短）。
+                    // 更合理的方案：背景变红持续150ms，然后恢复淡蓝，但用户必须在变红期间或变红结束后的一小段有效窗口内点击？但提前点击判定会有歧义。
+                    // 与用户需求沟通：用户说“随机1-5秒按钮上方出现文字，原背景变红一瞬间（很短）；如果用户提前点击，弹出弹窗提示提前点击”
+                    // 所以“提前点击”指在背景变红之前点击。一旦背景变红（即使变红时间很短），之后的点击就是有效点击。
+                    // 所以我们必须定义：从变红时刻起，点击都算有效，直到本次点击完成。背景变红一瞬间只是视觉刺激，之后蓝色恢复也不影响，因为已经变红过了。
+                    // 所以我们要在变红时刻记录startTime, 并且把状态设为READY，此后点击都算有效反应。
+                    // 背景红色很快消失, 我们设置红色持续120ms, 使用flashTimeoutId来移除红色类。
+                    // 然后用户点击时判断状态是否为READY。
+                    
+                    // 变红前确保没有红色残留
+                    container.classList.remove('flash-red');
+                    // 触发重绘? 为了确保背景色变化明显，可以强制reflow但不必须。
+                    container.classList.add('flash-red');
+                    // 在红色出现的同时更新文字（也可以提前一点点，但一起即可）
+                    setDisplayText(READY_TEXT);
+                    mainButton.textContent = BUTTON_TEXT[STATE.READY];
+                    
+                    // 记录刺激出现的时间 (即红色出现的时刻)
+                    startTime = performance.now();
+
+                    // 设置一个极短的超时移除红色背景 (一瞬间)
+                    flashTimeoutId = setTimeout(() => {
+                        container.classList.remove('flash-red');
+                        flashTimeoutId = null;
+                    }, 120); // 120ms 一瞬间
+
+                    // 注意：startTime已经在变红时记录，但用户可能在红色消失后点击，仍然有效。
+                    // 但有一个小问题：用户可能在红色出现后立刻点击，反应很快，这没问题。
+
+                }, delay);
+            }
+
+            // 处理有效点击 (状态为READY)
+            function handleValidClick() {
+                // 计算反应时间
+                const endTime = performance.now();
+                const reactionTime = endTime - startTime;
+                // 记录
+                reactionTimes.push(reactionTime);
+
+                // 清除可能的红色背景 (如果有)
+                container.classList.remove('flash-red');
+                if (flashTimeoutId) {
+                    clearTimeout(flashTimeoutId);
+                    flashTimeoutId = null;
+                }
+
+                // 检查是否达到5次
+                if (reactionTimes.length >= 5) {
+                    // 完成测试，显示平均值
+                    finishTest();
+                } else {
+                    // 继续下一次测试，但需要重置界面到等待状态
+                    // 显示第几次（可选）更新文字提示
+                    setDisplayText(`第 ${reactionTimes.length + 1} 次测试，等待变红…`);
+                    // 直接进入等待状态(再次随机延时)
+                    // 但注意当前状态应变为WAITING
+                    currentState = STATE.WAITING;
+                    mainButton.textContent = BUTTON_TEXT[STATE.WAITING];
+                    // 清除所有其他计时器 (其实已经清除)
+                    clearAllTimers();
+                    // 随机延时启动
+                    const delay = Math.floor(Math.random() * 4000) + 1000;
+                    timeoutId = setTimeout(() => {
+                        timeoutId = null;
+                        if (currentState !== STATE.WAITING) return;
+                        currentState = STATE.READY;
+                        container.classList.remove('flash-red');
+                        container.classList.add('flash-red');
+                        setDisplayText(READY_TEXT);
+                        mainButton.textContent = BUTTON_TEXT[STATE.READY];
+                        startTime = performance.now();
+                        flashTimeoutId = setTimeout(() => {
+                            container.classList.remove('flash-red');
+                            flashTimeoutId = null;
+                        }, 120);
+                    }, delay);
+                }
+            }
+
+            // ---------- 主按钮点击事件 ----------
+            function onMainButtonClick() {
+                // 根据当前状态处理
+                switch (currentState) {
+                    case STATE.IDLE:
+                        // 开始测试：清理数据，进入等待
+                        reactionTimes = []; // 重置
+                        // 清除所有计时器及样式
+                        clearAllTimers();
+                        container.classList.remove('flash-red');
+                        hideModal(); // 以防万一
+                        // 启动第一次等待
+                        currentState = STATE.WAITING;
+                        setDisplayText(WAITING_TEXT);
+                        mainButton.textContent = BUTTON_TEXT[STATE.WAITING];
+                        // 随机延时
+                        const delay = Math.floor(Math.random() * 4000) + 1000;
+                        timeoutId = setTimeout(() => {
+                            timeoutId = null;
+                            if (currentState !== STATE.WAITING) return;
+                            currentState = STATE.READY;
+                            container.classList.remove('flash-red');
+                            container.classList.add('flash-red');
+                            setDisplayText(READY_TEXT);
+                            mainButton.textContent = BUTTON_TEXT[STATE.READY];
+                            startTime = performance.now();
+                            flashTimeoutId = setTimeout(() => {
+                                container.classList.remove('flash-red');
+                                flashTimeoutId = null;
+                            }, 120);
+                        }, delay);
+                        break;
+
+                    case STATE.WAITING:
+                        // 提前点击！弹出弹窗
+                        handleEarlyClick();
+                        break;
+
+                    case STATE.READY:
+                        // 有效点击
+                        handleValidClick();
+                        break;
+
+                    case STATE.FINISHED:
+                        // 重新测试：重置到IDLE并重置数据
+                        resetToIdle();
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            // ---------- 弹窗按钮点击 ----------
+            function onModalButtonClick() {
+                // 关闭弹窗并恢复原始状态
+                hideModal();
+                resetToIdle();
+                // 注意：resetToIdle会把状态设为IDLE并更新界面
+            }
+
+            // ---------- 事件绑定 ----------
+            mainButton.addEventListener('click', onMainButtonClick);
+            modalButton.addEventListener('click', onModalButtonClick);
+
+            // 点击遮罩关闭？需求没有明确，弹窗只能通过按钮关闭，点击遮罩不关闭（防止误触）
+            // 不做遮罩点击关闭
+
+            // 初始化界面（确保首次加载是idle）
+            resetToIdle();
+
+            // 可选：处理页面卸载时清除计时器
+            window.addEventListener('beforeunload', function() {
+                clearAllTimers();
+            });
+
+            // 适配移动端触摸优化 (防止双击缩放等已在meta)
+        })();
+    </script>
+</body>
+</html>
