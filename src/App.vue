@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex">
+  <div>
     <span>{{ prompt_txt }}</span>
     <button @click="clickToState">
       {{ button_txt }}
@@ -95,7 +95,7 @@ const handleStateChange = (status) => {
           for (let i = 0; i < timingRecord.length; i++)
             totalReactionTime += timingRecord[i];
           averageReactionTime.value = Math.trunc(totalReactionTime / 5);
-          timingRecord.splice(0,timingRecord.length)
+          timingRecord.splice(0, timingRecord.length);
           handleStateChange(state.FINISHED);
         }
       }, 50);
