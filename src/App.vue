@@ -96,6 +96,7 @@ const handleStateChange = (status) => {
             totalReactionTime += timingRecord[i];
           averageReactionTime.value = Math.trunc(totalReactionTime / 5);
           timingRecord.splice(0, timingRecord.length);
+          currentTestTimes = 0;
           handleStateChange(state.FINISHED);
         }
       }, 50);
