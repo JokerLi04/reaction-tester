@@ -95,7 +95,7 @@ const handleStateChange = (status) => {
           for (let i = 0; i < timingRecord.length; i++)
             totalReactionTime += timingRecord[i];
           averageReactionTime.value = Math.trunc(totalReactionTime / 5);
-          timingRecord.splice(0,timingRecord.length)
+          timingRecord.splice(0, timingRecord.length);
           handleStateChange(state.FINISHED);
         }
       }, 50);
@@ -155,7 +155,14 @@ const clickToState = () => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   background-color: #f5f7fa; /* 默认浅灰背景 */
   transition: background-color 0.25s ease;
 }
@@ -197,7 +204,10 @@ const clickToState = () => {
   color: #fff;
   background-color: #3b82f6; /* 默认蓝 */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
   outline: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -315,7 +325,9 @@ const clickToState = () => {
 }
 
 /* 默认状态兜底 (如状态为空字符串) */
-.reaction-container:not(.idle):not(.waiting):not(.ready):not(.active):not(.finished):not(.check) {
+.reaction-container:not(.idle):not(.waiting):not(.ready):not(.active):not(
+    .finished
+  ):not(.check) {
   background-color: #f5f7fa;
 }
 </style>
