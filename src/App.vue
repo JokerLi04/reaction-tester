@@ -1,5 +1,6 @@
 <template>
   <div class="reaction-container" :class="currentState">
+    <span class="title">轩辕的反应测试仪</span>
     <span class="prompt-text">{{ prompt_txt }}</span>
     <button class="action-button" :class="currentState" @click="clickToState">
       {{ button_txt }}
@@ -10,6 +11,7 @@
 <script setup lang="js">
 import { computed, ref } from "vue";
 
+const quickReactionCount = ref(0); // 触发彩蛋次数
 const averageReactionTime = ref(0); // 平均反应时间
 let currentTestTimes = 0; // 当前测试轮数，共5轮
 let timerId = null; // 计时器
@@ -37,9 +39,14 @@ const prompt_txt = computed(() => {
     case state.FINISHED:
       return `测试完成，点击“查看结果”查看测试结果`;
     case state.CHECK:
-      return `5轮测试的平均反应时间：${averageReactionTime.value}ms`;
+      return (
+        `${currentTestTimes}轮测试的平均反应时间：${averageReactionTime.value}ms` +
+        (quickReactionCount.value
+          ? `，进入异度空间次数：${quickReactionCount.value}次`
+          : "")
+      );
     default:
-      return "你误入了异度空间，请点击“刷新”按钮";
+      return "你误入了异度空间，请点击“继续”按钮";
   }
 });
 // 按钮描述
@@ -58,7 +65,7 @@ const button_txt = computed(() => {
     case state.CHECK:
       return `再来一次`;
     default:
-      return "刷新";
+      return "继续";
   }
 });
 
@@ -71,6 +78,8 @@ const handleStateChange = (status) => {
   switch (status) {
     case state.IDLE:
       currentState.value = state.IDLE;
+      currentTestTimes = 0;
+      timingRecord.splice(0, timingRecord.length);
       break;
     case state.WAITING:
       currentState.value = state.WAITING;
@@ -87,7 +96,7 @@ const handleStateChange = (status) => {
       break;
     case state.ACTIVE:
       currentState.value = state.ACTIVE;
-      setTimeout(() => {
+      timerId = setTimeout(() => {
         if (currentTestTimes < 5) handleStateChange(state.WAITING);
         else {
           if (timingRecord.length < 5) handleStateChange("");
@@ -95,11 +104,9 @@ const handleStateChange = (status) => {
           for (let i = 0; i < timingRecord.length; i++)
             totalReactionTime += timingRecord[i];
           averageReactionTime.value = Math.trunc(totalReactionTime / 5);
-          timingRecord.splice(0, timingRecord.length);
-          currentTestTimes = 0;
           handleStateChange(state.FINISHED);
         }
-      }, 50);
+      }, 130);
       break;
     case state.FINISHED:
       currentState.value = state.FINISHED;
@@ -133,6 +140,9 @@ const clickToState = () => {
       handleStateChange(state.ACTIVE);
       break;
     case state.ACTIVE:
+      clearTimeout(timerId);
+      quickReactionCount.value++;
+      handleStateChange("");
       break;
     case state.FINISHED:
       handleStateChange(state.CHECK);
@@ -141,7 +151,7 @@ const clickToState = () => {
       handleStateChange(state.IDLE);
       break;
     default:
-      handleStateChange(state.IDLE);
+      handleStateChange(state.WAITING);
   }
 };
 </script>
@@ -330,5 +340,42 @@ const clickToState = () => {
     .finished
   ):not(.check) {
   background-color: #f5f7fa;
+}
+
+/* ---------- 标题 ---------- */
+.title {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  color: #1e293b;
+  text-align: center;
+  transition: color 0.25s ease;
+}
+
+/* 手机端标题稍小 */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+}
+
+/* 跟随各状态调整标题颜色，保持整体协调 */
+.reaction-container.waiting .title {
+  color: #e2e8f0;
+}
+.reaction-container.ready .title {
+  color: #0f172a;
+}
+.reaction-container.active .title {
+  color: #1e293b;
+}
+.reaction-container.finished .title {
+  color: #0369a1;
+}
+.reaction-container.check .title {
+  color: #5b21b6;
 }
 </style>
