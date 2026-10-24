@@ -9,7 +9,7 @@ const viteConfig = defineConfig((mode) => {
     server: {
       open: true,
       port: 1000,
-      host: "localhost",
+      host: true,
     },
     build: {
       sourcemap: isDev ? 'inline' : true,
