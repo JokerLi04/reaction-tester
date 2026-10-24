@@ -29,7 +29,7 @@ const currentState = ref(state.IDLE); // 初始状态
 const prompt_txt = computed(() => {
   switch (currentState.value) {
     case state.IDLE:
-      return `测试方法：点击“开始测试”后，等待页面变化瞬间点击按钮，测试共5轮`;
+      return `测试方法：点击“开始测试”后，等待页面变化瞬间点击按钮，正常情况测试共5轮`;
     case state.WAITING:
       return `变化随时会出现（已经出现了${currentTestTimes}轮）`;
     case state.READY:
@@ -79,11 +79,12 @@ const handleStateChange = (status) => {
     case state.IDLE:
       currentState.value = state.IDLE;
       currentTestTimes = 0;
+      quickReactionCount.value = 0;
       timingRecord.splice(0, timingRecord.length);
       break;
     case state.WAITING:
       currentState.value = state.WAITING;
-      const randomTime = Math.trunc(Math.random() * 500 + 1750);
+      const randomTime = Math.trunc(Math.random() * 1000 + 1750);
       timerId = setTimeout(() => {
         // 等待 -> 就绪
         timerId = null;
@@ -103,7 +104,7 @@ const handleStateChange = (status) => {
           let totalReactionTime = 0;
           for (let i = 0; i < timingRecord.length; i++)
             totalReactionTime += timingRecord[i];
-          averageReactionTime.value = Math.trunc(totalReactionTime / 5);
+          averageReactionTime.value = Math.trunc(totalReactionTime / currentTestTimes);
           handleStateChange(state.FINISHED);
         }
       }, 130);
